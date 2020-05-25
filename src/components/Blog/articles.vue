@@ -73,10 +73,10 @@
         label="博文标题">
       </el-table-column>
       <el-table-column
-        prop="articleContent"
+        prop="articleDesc"
         header-align="center"
         align="center"
-        label="博文内容">
+        label="博文描述">
       </el-table-column>
       <el-table-column
         prop="articleViews"
@@ -119,6 +119,22 @@
       </el-table-column>
 
       <el-table-column
+        header-align="center"
+        align="center"
+        label="是在否首页展示"
+        width="150px">
+        <template slot-scope="slotProps">
+          <el-switch
+            @change="ArticleStatusChange(slotProps.row)"
+            v-model="slotProps.row.articleIsDisplay"
+            :active-value=0
+            :inactive-value=1
+            >
+          </el-switch>
+        </template>
+      </el-table-column>
+
+      <el-table-column
         fixed="right"
         header-align="center"
         align="center"
@@ -148,9 +164,9 @@
     </el-pagination>
     <!-- 修改文章标题的对话框 -->
     <el-dialog title="文章修改" :visible.sync="dialogTableVisible">
-      <el-form :model="editFrom">
+      <el-form :model="editForm">
         <el-form-item label="文章标题">
-          <el-input v-model="editFrom.articleTitle" autocomplete="off"></el-input>
+          <el-input v-model="editForm.articleTitle" autocomplete="off"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -204,11 +220,12 @@
         dataListLoading: false,
         dataListSelections: [],
         dialogTableVisible: false,
-        editFrom: {
+        editForm: {
           articleId: '',
           userId: '',
           articleTitle: '',
           articleContent: '',
+          articleDesc: '',
           articleViews: '',
           articleCommentCount: '',
           articleDate: '',
@@ -225,6 +242,8 @@
     },
     created () {
       this.getDataList()
+    },
+    computed: {
     },
     mounted(){
     },
@@ -243,12 +262,19 @@
           })
         this.getDataList()
       },
+      ArticleDisplayChange(listInfo){
+        // this.$http({
+        //   path: 'article/updateArticle'
+        // })  
+      },
       // 获取数据列表
       async getDataList () {
         this.dataListLoading = true
         const {data : res} = await this.$http.get('articles/list')
-        console.log(res)
           if (res && res.code === 0) {
+            for(let i = 0; i < res.page.list.length;i++){
+              res.page.list[i].articleDesc = res.page.list[i].articleDesc.substring(0,15)
+            }
             this.dataList = res.page.list
             this.totalPage = res.page.totalCount
           } else {
@@ -272,9 +298,16 @@
       // 新增 / 修改
       addOrUpdateHandle (articleInfo) {
         this.dialogTableVisible = true
-        this.editFrom.articleTitle = articleInfo.articleTitle
-        this.editFrom.articleId = articleInfo.articleId
-        this.editFrom.articleContent = articleInfo.articleContent
+        this.editForm.articleTitle = articleInfo.articleTitle
+        this.editForm.articleId = articleInfo.articleId
+        this.editForm.articleContent = articleInfo.articleContent
+        this.editForm.articleDesc = articleInfo.articleDesc
+        this.$router.push({
+          path: '/addBlog',
+          name: 'addBlog',
+          query: {articleId: articleInfo.articleId},
+          params: {editForm: this.editForm}
+        })
       },
       // 删除
       deleteHandle (id) {
@@ -304,7 +337,7 @@
           return this.$moment(row.articleDate).format('YYYY-MM-DD')
       },
        async saveEditForm(){
-       const{data : res} = await this.$http.put('articles/updateArticle',this.editFrom)
+       const{data : res} = await this.$http.put('articles/updateArticle',this.editForm)
        if(res.code !== 0){
          return this.$message({
             type: 'info',

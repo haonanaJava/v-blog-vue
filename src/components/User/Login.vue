@@ -14,6 +14,7 @@
                 <el-form-item class="btns">
                     <el-button @click="login" type="primary">登录</el-button>
                     <el-button @click="resetForm" type="info">重置</el-button>
+                    <el-button @click="toIndex" type="success">去主页</el-button>
                 </el-form-item>
             </el-form>
         </div>
@@ -49,8 +50,11 @@ export default {
                 if (result.code !== 0) return this.$message.error('登录失败')
                 this.$message.success('登录成功')
                 window.sessionStorage.setItem("token", result.token)
-                this.$router.push('/index')
+                this.$router.push('/blog')
             })
+        },
+        toIndex(){
+            this.$router.push('/index')
         }
     }
 }

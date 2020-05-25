@@ -31,7 +31,8 @@
 
         <el-menu-item class="loginNav">
           <i class="el-icon-moon-night"></i>
-          注销</el-menu-item>
+          <el-link @click="logout" type="danger">注销</el-link>
+          </el-menu-item>
 
           <el-menu-item index="blogroll">
           <i class="el-icon-link"></i>
@@ -51,7 +52,10 @@
       };
     },
     methods: {
-      
+      logout(){
+        window.sessionStorage.removeItem('token')
+        this.$router.push('/login')
+      }
     }
   }
 </script>
