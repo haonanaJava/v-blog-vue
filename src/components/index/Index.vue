@@ -10,8 +10,8 @@
             router
             >
             <el-avatar class="siteLogo" src="https://pic2.zhimg.com/80/v2-1e78d8115e803957facb3c2783eec15c_720w.jpg"></el-avatar>
-            <el-menu-item index="homePage">首页</el-menu-item>
-            <el-menu-item index="Technology">技术杂谈</el-menu-item>
+            <el-menu-item index="index">首页</el-menu-item>
+            <el-menu-item index="technology">技术杂谈</el-menu-item>
             <el-menu-item index="essay">心情随笔</el-menu-item>
             <el-menu-item index="friendLink">友情连接</el-menu-item>
             <el-menu-item index="aboutMe">关于我</el-menu-item>
@@ -36,12 +36,14 @@
                     <el-card :body-style="{ padding: '0px' }" shadow="always">
                     <img src="https://picsum.photos/id/119/400/230" class="image">
                     <div style="padding: 12px;">
-                        <el-input
+                        <el-autocomplete
                             placeholder="好文直通车"
                             v-model="searchKey"
-                            clearable>
+                            :fetch-suggestions="querySearch"
+                            @select="handlerSelect"
+                            >
                             <i slot="prefix" class="el-input__icon el-icon-search"></i>
-                        </el-input>
+                        </el-autocomplete>
                         <div class="Sortlink">
                             <el-link type="info"  v-for="(item,index) in sortList" :key="index" v-text="item.sortName"></el-link>
                         </div>
@@ -97,9 +99,6 @@
 
 <script>
 export default {
-    props: {
-
-    },
     data() {
         return {
             siteLogo: '',
@@ -112,7 +111,6 @@ export default {
             indexArticleList: [],
             recommendList: [],
             sortList: [],
-
         };
     },
     created() {
@@ -154,6 +152,30 @@ export default {
                 url: 'sorts/list'
             }).then(({data}) => {
                 this.sortList = data.page.list
+            })
+        },
+        querySearch(queryString, cb){
+            //1.发送请求,请求到含检索关键字的列表
+            if (queryString && queryString.length > 2) {
+                this.$http({
+                    url: 'articles/list',
+                    method: 'get',
+                    params: {key: queryString}
+                }).then(({data}) => {
+                    let tempArr = data.page.list
+                    // [this.searchList] = [data.page.list.articleTitle]
+                    let searchList = tempArr.map(item => {
+                        return {value: item.articleTitle,id: item.articleId}
+                    })
+                    cb(searchList)
+                })
+            }
+        },
+        handlerSelect(item){
+        
+           this.$router.push({
+                path: '/articleDetail',
+                query: {'articleId': item.id}
             })
         }
     },
@@ -314,6 +336,7 @@ header{
     justify-content: center;
     box-shadow: 2px 4px 6px #ededee;
     background-color: #4A8230;
+    height: 80px;
 }
 .el-menu{
     width: 1200px;

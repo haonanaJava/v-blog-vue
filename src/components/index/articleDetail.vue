@@ -1,7 +1,6 @@
 <template>
     <div class="container">
         <el-backtop></el-backtop>
-        <remote-css  href="https://cdn.bootcss.com/github-markdown-css/2.10.0/github-markdown.min.css"></remote-css>
         <div class="navbar">
             <el-avatar :src="avatar"></el-avatar>
             <ul class="menu">
@@ -18,6 +17,32 @@
         </div>
         <div class="markdown-body customer_body" v-html="article.articleContent" v-highlight></div>
 
+        <div class="message_borad">
+            <div class="message_form">
+                <el-form ref="form" :model="messageForm" label-position="left"  label-width="80px" size="medium">
+                    <el-form-item label="邮箱" prop="email">
+                        <el-input type="email" v-model="messageForm.commentEmail"></el-input>
+                    </el-form-item>
+                    <el-form-item label="昵称" prop="nickname">
+                        <el-input type="text" v-model="messageForm.nickname"></el-input>
+                    </el-form-item>
+                    <el-form-item label="留言内容">
+                        <el-input type="textarea" v-model="messageForm.commentContent" placeholder="留言..." maxlength="30" show-word-limit></el-input>
+                    </el-form-item>
+                    <el-form-item size="large">
+                        <el-button type="primary" @click="onSubmit">提交</el-button>
+                        <el-button>重置</el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
+            <div class="message_list">
+                <el-card v-for="(item,index) in messageList" :key="index">
+                    <font-awesome-icon :icon="['fas','user-edit']"/>
+                    <span id="nickname" v-text="item.nickname">向天再借5cm</span>
+                    <p v-text="item.commentContent"></p>
+                </el-card>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -25,39 +50,67 @@
 import 'mavon-editor/dist/markdown/github-markdown.min.css'
 
 export default {
-    props: {
-
-    },
     data() {
         return {
             article: {},
-            avatar: 'https://pic2.zhimg.com/80/v2-1e78d8115e803957facb3c2783eec15c_720w.jpg'
-        }
-    },
-    components: {
-        'remote-css': {
-            render(createElement) {            
-              return createElement('link', { attrs: { rel: 'stylesheet', href: this.href }});
+            avatar: 'https://pic2.zhimg.com/80/v2-1e78d8115e803957facb3c2783eec15c_720w.jpg',
+            messageForm: {
+                articleId: '',
+                commentEmail: '',
+                nickname: '',
+                commentContent: ''
             },
-            props: {
-            href: { type: String, required: true },
+            message_rule: {
+                email: [
+                    {required: true,message: '请输入邮箱',trigger: 'blur'},
+                    {type: 'email', message: '请输入正确的邮箱格式',trigger: 'change'}
+                ],
+                nickname: [
+                    {required: true,message: '请输入昵称',trigger: 'blur'},
+                    {min: 3,max: 7,message: '长度在3到7个字符',trigger: 'change'}
+                ]
             },
+            messageList: [],
         }
     },
     created() {
         this.getArticle()
+        this.getCommentList()
     },
     methods: {
         getArticle(){
             this.$http({
                 url: `articles/info/${this.$route.query.articleId}`,
             }).then(({data}) => {
-                console.log(data)
                 this.article = data.articles
             })
         },
         toIndex(){
             this.$router.push('/index')
+        },
+        getCommentList(){
+            this.$http({
+                url: `comments/list_comment/${this.$route.query.articleId}`,
+                method: 'get'
+            }).then(({data}) => {
+                if(data.code !== 0){
+                    return this.$message.error('获取评论列表失败')
+                }
+                this.messageList = data.list
+            })
+        },
+        onSubmit(){
+            this.$http({
+                url: `comments/save/${this.$route.query.articleId}`,
+                method: 'post',
+                data: this.messageForm
+            }).then(({data}) => {
+                if(data.code !== 0){
+                    return this.$message.error('留言失败')
+                }
+                this.getCommentList()
+                this.messageForm = {}
+            })
         }
     },
 }
@@ -118,5 +171,35 @@ export default {
 .img_container h2{
     font-size: 20px;
     font-weight: 500;
+}
+
+.message_borad{
+    width: 800px;
+    margin: 0 auto;
+    display: grid;
+    grid-row: repeat(2,1fr);
+}
+
+.message_list{
+}
+.fa-user-edit{
+    font-size: 20px;
+}
+
+#nickname{
+    margin-left: 10px;
+    font-size: 17px;
+    font-weight: 600;
+    color: #0C2A08;
+}
+
+.message_list p{
+    margin: 10px 5px;
+    line-height: 19px;
+    color: #587B7F;
+}
+
+.el-card{
+    margin: 10px 0 10px 0;
 }
 </style>

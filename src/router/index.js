@@ -9,6 +9,9 @@ import Login from '../components/User/Login.vue'
 import Index from '../components/index/Index.vue'
 import ArticleDetail from '../components/index/articleDetail.vue'
 import AboutMe from '../components/index/aboutMe.vue'
+import Comment from '../components/comment/comments.vue'
+import Technology from '../components/index/Technology.vue'
+
 
 Vue.use(VueRouter)
 
@@ -34,8 +37,16 @@ const routes = [
         path: '/addBlog',
         name: 'addBlog',
         component: ArticlesAddOrUpdate
-      }
+      },
+      {
+        path:'/comment',
+        component: Comment
+      },
     ]
+  },
+  {
+    path: '/technology',
+    component: Technology
   },
   {
     path: '/aboutMe',
@@ -64,7 +75,7 @@ const router = new VueRouter({
 })
 
 router.beforeEach((to,from ,next) => {
-  if(to.path === '/login' || to.path === '/' || to.path === '/index' || to.path.search('articleDetail') !== -1 || to.path === '/aboutMe') return next()
+  if(to.path === '/technology' || to.path === '/login' || to.path === '/' || to.path === '/index' || to.path.search('articleDetail') !== -1 || to.path === '/aboutMe') return next()
   const tokenStr = window.sessionStorage.getItem('token')
   if(!tokenStr) return next('login')
   next()

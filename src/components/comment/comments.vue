@@ -6,8 +6,8 @@
       </el-form-item>
       <el-form-item>
         <el-button @click="getDataList()">查询</el-button>
-        <el-button v-if="isAuth('blog:comments:save')" type="primary" @click="addOrUpdateHandle()">新增</el-button>
-        <el-button v-if="isAuth('blog:comments:delete')" type="danger" @click="deleteHandle()" :disabled="dataListSelections.length <= 0">批量删除</el-button>
+        <el-button type="primary" @click="addOrUpdateHandle()">新增</el-button>
+        <el-button type="danger" @click="deleteHandle()" :disabled="dataListSelections.length <= 0">批量删除</el-button>
       </el-form-item>
     </el-form>
     <el-table
@@ -29,10 +29,16 @@
         label="评论ID">
       </el-table-column>
       <el-table-column
-        prop="userId"
+        prop="commentEmail"
         header-align="center"
         align="center"
-        label="发表用户ID">
+        label="留言者邮箱">
+      </el-table-column>
+      <el-table-column
+        prop="nickname"
+        header-align="center"
+        align="center"
+        label="留言者昵称">
       </el-table-column>
       <el-table-column
         prop="articleId"
@@ -50,6 +56,7 @@
         prop="commentDate"
         header-align="center"
         align="center"
+        :formatter="formatDate"
         label="评论日期">
       </el-table-column>
       <el-table-column
@@ -59,10 +66,19 @@
         label="评论内容">
       </el-table-column>
       <el-table-column
-        prop="parentCommentId"
+        prop="commentAudit"
         header-align="center"
         align="center"
-        label="父评论ID">
+        label="审核">
+        <template slot-scope="slotProps">
+          <el-switch
+            @change="CommentStatusChange(slotProps.row)"
+            v-model="slotProps.row.commentAudit"
+            :active-value=0
+            :inactive-value=1
+            >
+          </el-switch>
+        </template>
       </el-table-column>
       <el-table-column
         fixed="right"
@@ -110,7 +126,7 @@
     components: {
       AddOrUpdate
     },
-    activated () {
+    created () {
       this.getDataList()
     },
     methods: {
@@ -118,13 +134,13 @@
       getDataList () {
         this.dataListLoading = true
         this.$http({
-          url: this.$http.adornUrl('/blog/comments/list'),
+          url: 'comments/list',
           method: 'get',
-          params: this.$http.adornParams({
+          params: {
             'page': this.pageIndex,
             'limit': this.pageSize,
             'key': this.dataForm.key
-          })
+          }
         }).then(({data}) => {
           if (data && data.code === 0) {
             this.dataList = data.page.list
@@ -169,9 +185,9 @@
           type: 'warning'
         }).then(() => {
           this.$http({
-            url: this.$http.adornUrl('/blog/comments/delete'),
+            url: '/blog/comments/delete',
             method: 'post',
-            data: this.$http.adornData(ids, false)
+            data: ids
           }).then(({data}) => {
             if (data && data.code === 0) {
               this.$message({
@@ -187,7 +203,29 @@
             }
           })
         })
-      }
+      },
+      CommentStatusChange(commentInfo){
+        this.$http({
+          url: 'comments/update',
+          method: 'put',
+          data: commentInfo
+        }).then(({data}) => {
+          if(data.code !== 0){
+            return this.$message({
+            type: 'info',
+            message: '修改状态失败'
+          })
+          }
+          this.$message({
+            type: 'success',
+            message: '修改状态成功'
+          })
+          this.getDataList()
+        })
+      },
+      formatDate(row,column,cellName){
+          return this.$moment(row.articleDate).format('YYYY-MM-DD')
+      },
     }
   }
 </script>

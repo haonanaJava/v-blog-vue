@@ -73,12 +73,6 @@
         label="博文标题">
       </el-table-column>
       <el-table-column
-        prop="articleDesc"
-        header-align="center"
-        align="center"
-        label="博文描述">
-      </el-table-column>
-      <el-table-column
         prop="articleViews"
         header-align="center"
         align="center"
@@ -268,20 +262,26 @@
         // })  
       },
       // 获取数据列表
-      async getDataList () {
+       getDataList () {
         this.dataListLoading = true
-        const {data : res} = await this.$http.get('articles/list')
-          if (res && res.code === 0) {
-            for(let i = 0; i < res.page.list.length;i++){
-              res.page.list[i].articleDesc = res.page.list[i].articleDesc.substring(0,15)
-            }
-            this.dataList = res.page.list
-            this.totalPage = res.page.totalCount
+        this.$http({
+          url: 'articles/list',
+          method: 'get',
+          params: {
+            'page': this.pageIndex,
+            'limit': this.pageSize,
+            'key': this.dataForm.key
+          }
+        }).then(({data}) => {
+          if (data && data.code === 0) {
+            this.dataList = data.page.list
+            this.totalPage = data.page.totalCount
           } else {
             this.dataList = []
             this.totalPage = 0
           }
           this.dataListLoading = false
+        })
       },
       // 每页数
       sizeChangeHandle (val) {
@@ -321,7 +321,7 @@
           type: 'warning'
         }).then(async() => {
           const {data : res} = await this.$http.post('articles/delete',ids)
-          if(res.code === 0){
+          if(res.code !== 0){
             return this.$message({type: 'info',message: '删除失败'})
           }
           this.$message({type: 'success',message: '删除成功'})
@@ -377,10 +377,10 @@
           this.editedArticleId = articleId
         },
         async getLabelSortList(){
-          const {data: res} = await this.$http.get('labels/list')
-          const {data: sortRes} = await this.$http.get('sorts/list')
-          this.labelOption = res.page.list
-          this.sortOption = sortRes.page.list
+          const {data: res} = await this.$http.get('labels/list_labels')
+          const {data: sortRes} = await this.$http.get('sorts/list_sorts')
+          this.labelOption = res.list
+          this.sortOption = sortRes.list
         },
         submitSortLabel(){
           if(this.SelectedLabels.length !== 0){

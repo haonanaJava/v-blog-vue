@@ -9,6 +9,8 @@ import VueAxios from 'vue-axios'
 import moment from 'moment'
 import qs from 'qs'
 import './utils/hljs'
+import mavonEditor from 'mavon-editor'
+import 'mavon-editor/dist/css/index.css'
 
 
 import fontawesome from '@fortawesome/fontawesome'
@@ -34,7 +36,7 @@ axios.interceptors.request.use(config => {
   return config
 })
 
-Vue.use(ElementUi,axios,VueAxios,fontawesome)
+Vue.use(ElementUi,axios,VueAxios,fontawesome,mavonEditor)
 new Vue({
   router,
   render: h => h(App)
