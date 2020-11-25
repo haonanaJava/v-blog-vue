@@ -20,7 +20,7 @@
     "core-js": "^3.6.4",
     "element-ui": "^2.13.1",
     "font-awesome": "^4.7.0",
-    "highlight.js": "^10.0.3",
+    "highlight.js": "^10.1.2",
     "mavon-editor": "^2.9.0",
     "moment": "^2.25.3",
     "qs.js": "^0.1.12",
